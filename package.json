@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node backend/app.js",
     "start": "node backend/app.js",
-    "build": "echo 'Build complete'",
+    "build": "cd netlify/functions && npm install",
     "vercel-build": "echo 'Vercel build complete'"
   },
   "dependencies": {

@@ -12,58 +12,95 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const pathParts = event.path.split('/').filter(Boolean);
+    const pathParts = (event.path || '').split('/').filter(Boolean);
     
     switch (event.httpMethod) {
       case 'GET':
-        const expenses = await Database.getExpenses();
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify(expenses)
-        };
+        try {
+          const expenses = await Database.getExpenses();
+          const expenseArray = Array.isArray(expenses) ? expenses : [];
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(expenseArray)
+          };
+        } catch (error) {
+          console.error('Error getting expenses:', error);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+              error: 'Failed to get expenses',
+              message: error.message
+            })
+          };
+        }
         
       case 'POST':
-        const body = JSON.parse(event.body || '{}');
-        
-        if (!body.date || !body.type || !body.description || body.amount === undefined) {
+        try {
+          const body = JSON.parse(event.body || '{}');
+          
+          if (!body.date || !body.type || !body.description || body.amount === undefined) {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Missing required fields: date, type, description, amount' })
+            };
+          }
+          
+          const expense = await Database.createExpense({
+            date: body.date,
+            type: body.type,
+            description: body.description,
+            amount: Number(body.amount)
+          });
+          
           return {
-            statusCode: 400,
+            statusCode: 201,
             headers,
-            body: JSON.stringify({ error: 'Missing required fields: date, type, description, amount' })
+            body: JSON.stringify(expense)
+          };
+        } catch (error) {
+          console.error('Error creating expense:', error);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+              error: 'Failed to create expense',
+              message: error.message
+            })
           };
         }
-        
-        const expense = await Database.createExpense({
-          date: body.date,
-          type: body.type,
-          description: body.description,
-          amount: Number(body.amount)
-        });
-        
-        return {
-          statusCode: 201,
-          headers,
-          body: JSON.stringify(expense)
-        };
         
       case 'DELETE':
-        const id = pathParts[pathParts.length - 1];
-        if (!id || id === 'expenses') {
+        try {
+          const id = pathParts[pathParts.length - 1];
+          if (!id || id === 'expenses') {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Expense ID required for deletion' })
+            };
+          }
+          
+          await Database.deleteExpense(parseInt(id));
+          
           return {
-            statusCode: 400,
+            statusCode: 200,
             headers,
-            body: JSON.stringify({ error: 'Expense ID required for deletion' })
+            body: JSON.stringify({ success: true })
+          };
+        } catch (error) {
+          console.error('Error deleting expense:', error);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+              error: 'Failed to delete expense',
+              message: error.message
+            })
           };
         }
-        
-        await Database.deleteExpense(parseInt(id));
-        
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ success: true })
-        };
         
       default:
         return {

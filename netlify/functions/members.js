@@ -12,116 +12,154 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const path = event.path;
+    const path = event.path || '';
     const pathParts = path.split('/').filter(Boolean);
     
     switch (event.httpMethod) {
       case 'GET':
-        const members = await Database.getMembers();
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify(members.map(member => ({
-            ...member,
-            payments: member.payments || {}
-          })))
-        };
-        
-      case 'POST':
-        // Check if this is a payment toggle request
-        if (path.includes('/payments/') && path.includes('/toggle')) {
-          // Extract ID and yearMonth from path like: /api/members/5/payments/2025-08/toggle
-          const membersIndex = pathParts.indexOf('members');
-          const paymentsIndex = pathParts.indexOf('payments');
-          
-          if (membersIndex === -1 || paymentsIndex === -1) {
-            return {
-              statusCode: 400,
-              headers,
-              body: JSON.stringify({ error: 'Invalid payment toggle path' })
-            };
-          }
-          
-          const id = pathParts[membersIndex + 1];
-          const yearMonth = pathParts[paymentsIndex + 1];
-          
-          const allMembers = await Database.getMembers();
-          const member = allMembers.find(m => m.id === parseInt(id));
-          
-          if (!member) {
-            return {
-              statusCode: 404,
-              headers,
-              body: JSON.stringify({ error: 'Member not found' })
-            };
-          }
-
-          const payments = member.payments || {};
-          
-          if (payments[yearMonth]) {
-            delete payments[yearMonth];
-          } else {
-            const settings = await Database.getSettings();
-            const monthlyFee = getMonthlyFeeForMonth(yearMonth, settings);
-            payments[yearMonth] = {
-              paid: true,
-              amount: monthlyFee,
-              paidAt: new Date().toISOString()
-            };
-          }
-
-          await Database.updateMember(member.id, { payments });
-          
-          const paid = !!payments[yearMonth];
+        try {
+          const members = await Database.getMembers();
+          // Ensure members is an array
+          const memberArray = Array.isArray(members) ? members : [];
           return {
             statusCode: 200,
             headers,
+            body: JSON.stringify(memberArray.map(member => ({
+              ...member,
+              payments: member.payments || {}
+            })))
+          };
+        } catch (error) {
+          console.error('Error getting members:', error);
+          return {
+            statusCode: 500,
+            headers,
             body: JSON.stringify({ 
-              id: member.id, 
-              yearMonth, 
-              paid, 
-              amount: paid ? payments[yearMonth].amount : 0 
+              error: 'Failed to get members',
+              message: error.message
             })
           };
-        } else {
-          // Create new member
-          const body = JSON.parse(event.body || '{}');
-          if (!body.name) {
+        }
+      case 'POST':
+        try {
+          // Check if this is a payment toggle request
+          if (path.includes('/payments/') && path.includes('/toggle')) {
+            // Extract ID and yearMonth from path like: /api/members/5/payments/2025-08/toggle
+            const membersIndex = pathParts.indexOf('members');
+            const paymentsIndex = pathParts.indexOf('payments');
+            
+            if (membersIndex === -1 || paymentsIndex === -1) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Invalid payment toggle path' })
+              };
+            }
+            
+            const id = pathParts[membersIndex + 1];
+            const yearMonth = pathParts[paymentsIndex + 1];
+            
+            const allMembers = await Database.getMembers();
+            const memberArray = Array.isArray(allMembers) ? allMembers : [];
+            const member = memberArray.find(m => m.id === parseInt(id));
+            
+            if (!member) {
+              return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ error: 'Member not found' })
+              };
+            }
+
+            const payments = member.payments || {};
+            
+            if (payments[yearMonth]) {
+              delete payments[yearMonth];
+            } else {
+              const settings = await Database.getSettings();
+              const monthlyFee = getMonthlyFeeForMonth(yearMonth, settings);
+              payments[yearMonth] = {
+                paid: true,
+                amount: monthlyFee,
+                paidAt: new Date().toISOString()
+              };
+            }
+
+            await Database.updateMember(member.id, { payments });
+            
+            const paid = !!payments[yearMonth];
             return {
-              statusCode: 400,
+              statusCode: 200,
               headers,
-              body: JSON.stringify({ error: 'Name is required' })
+              body: JSON.stringify({ 
+                id: member.id, 
+                yearMonth, 
+                paid, 
+                amount: paid ? payments[yearMonth].amount : 0 
+              })
+            };
+          } else {
+            // Create new member
+            const body = JSON.parse(event.body || '{}');
+            if (!body.name) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Name is required' })
+              };
+            }
+            
+            const member = await Database.createMember({
+              name: body.name,
+              payments: {}
+            });
+            
+            return {
+              statusCode: 201,
+              headers,
+              body: JSON.stringify(member)
             };
           }
-          
-          const member = await Database.createMember({
-            name: body.name,
-            payments: {}
-          });
-          
+        } catch (error) {
+          console.error('Error in POST request:', error);
           return {
-            statusCode: 201,
+            statusCode: 500,
             headers,
-            body: JSON.stringify(member)
+            body: JSON.stringify({ 
+              error: 'Failed to process POST request',
+              message: error.message
+            })
           };
         }
         
       case 'DELETE':
-        const deleteId = pathParts[pathParts.length - 1];
-        if (!deleteId || deleteId === 'members') {
+        try {
+          const deleteId = pathParts[pathParts.length - 1];
+          if (!deleteId || deleteId === 'members') {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Member ID required for deletion' })
+            };
+          }
+          
+          await Database.deleteMember(parseInt(deleteId));
           return {
-            statusCode: 400,
+            statusCode: 200,
             headers,
-            body: JSON.stringify({ error: 'Member ID required for deletion' })
+            body: JSON.stringify({ success: true })
+          };
+        } catch (error) {
+          console.error('Error in DELETE request:', error);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ 
+              error: 'Failed to delete member',
+              message: error.message
+            })
           };
         }
-        
-        await Database.deleteMember(parseInt(deleteId));
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ success: true })
-        };
         
       default:
         return {
