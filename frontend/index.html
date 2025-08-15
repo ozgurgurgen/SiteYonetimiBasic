@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>YAZIRAY SİTESİ B BLOK - Site Aidat Takip</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: #f8f9fa; 
+      color: #333;
+      padding: 10px;
+    }
+    
+    @media (min-width: 768px) {
+      body { padding: 20px; }
+    }
+    
+    .header-section {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    @media (min-width: 768px) {
+      .header-section {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+    }
+    
+    .title {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #2c5aa0;
+      margin-bottom: 8px;
+    }
+    
+    @media (min-width: 768px) {
+      .title {
+        font-size: 24px;
+        margin-bottom: 10px;
+      }
+    }
+    
+    .year { 
+      font-size: 16px; 
+      color: #4a90e2; 
+    }
+    
+    @media (min-width: 768px) {
+      .year { font-size: 20px; }
+    }
+    
+    .excel-table {
+      background: white;
+      border-radius: 8px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    @media (min-width: 768px) {
+      .excel-table {
+        margin-bottom: 20px;
+      }
+    }
+    
+    .main-table {
+      width: 100%;
+      min-width: 800px;
+      border-collapse: collapse;
+      font-family: 'Calibri', Arial, sans-serif;
+      font-size: 10px;
+    }
+    
+    @media (min-width: 768px) {
+      .main-table {
+        font-size: 12px;
+        min-width: auto;
+      }
+    }
+    
+    .main-table th {
+      background: linear-gradient(135deg, #4472c4 0%, #2c5aa0 100%);
+      color: white;
+      padding: 6px 4px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 9px;
+      border: 1px solid #2c5aa0;
+      white-space: nowrap;
+    }
+    
+    @media (min-width: 768px) {
+      .main-table th {
+        padding: 8px 6px;
+        font-size: 11px;
+      }
+    }
+    
+    .main-table td {
+      border: 1px solid #d1d1d1;
+      padding: 4px 3px;
+      text-align: center;
+      background: white;
+      font-size: 9px;
+    }
+    
+    @media (min-width: 768px) {
+      .main-table td {
+        padding: 6px;
+        font-size: 11px;
+      }
+    }
+    
+    .gider-cell {
+      background: #ffc000 !important;
+      color: #333;
+      font-weight: bold;
+      text-align: left;
+      padding-left: 6px;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    @media (min-width: 768px) {
+      .gider-cell {
+        padding-left: 8px;
+        max-width: none;
+      }
+    }
+    
+    .member-num {
+      background: #fff2cc;
+      font-weight: 500;
+    }
+    
+    .member-name {
+      background: #fff2cc;
+      text-align: left;
+      padding-left: 6px;
+      font-weight: 500;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    @media (min-width: 768px) {
+      .member-name {
+        padding-left: 8px;
+        max-width: none;
+      }
+    }
+    
+    .paid {
+      background: #70ad47 !important;
+      color: white;
+      font-weight: bold;
+    }
+    
+    .amount {
+      background: #fff2cc;
+      text-align: right;
+      font-weight: bold;
+      color: #7f6000;
+    }
+    
+    .gider-amount {
+      background: #fff2cc;
+      text-align: right;
+      font-weight: bold;
+      color: #c0392b;
+    }
+    
+    .total-row {
+      background: linear-gradient(135deg, #2c5aa0 0%, #1e3f73 100%) !important;
+      color: white !important;
+      font-weight: bold;
+    }
+    
+    .empty-cell {
+      background: white;
+    }
+    
+    .expenses-section {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+    
+    @media (min-width: 768px) {
+      .expenses-section {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+    }
+    
+    .expenses-title {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: white;
+      padding: 8px;
+      text-align: center;
+      font-weight: bold;
+      margin: -15px -15px 15px -15px;
+      border-radius: 8px 8px 0 0;
+      font-size: 14px;
+    }
+    
+    @media (min-width: 768px) {
+      .expenses-title {
+        padding: 10px;
+        margin: -20px -20px 20px -20px;
+        font-size: 16px;
+      }
+    }
+    
+    .expense-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      margin-bottom: 2px;
+      width: 100%;
+    }
+    
+    @media (min-width: 768px) {
+      .expense-row {
+        grid-template-columns: 15% 20% 1fr 15%;
+        gap: 2px;
+      }
+    }
+    
+    .expense-row > .expense-cell:nth-child(3) {
+      grid-column: 1 / -1;
+    }
+    
+    @media (min-width: 768px) {
+      .expense-row > .expense-cell:nth-child(3) {
+        grid-column: auto;
+      }
+    }
+    
+    .expense-cell {
+      background: #ffe6e6;
+      border: 1px solid #ffb3b3;
+      padding: 6px;
+      font-size: 10px;
+    }
+    
+    @media (min-width: 768px) {
+      .expense-cell {
+        padding: 8px;
+        font-size: 11px;
+      }
+    }
+    
+    .summary-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    
+    @media (min-width: 768px) {
+      .summary-section {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 15px;
+        margin-top: 20px;
+      }
+    }
+    
+    @media (min-width: 1024px) {
+      .summary-section {
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+        gap: 20px;
+      }
+    }
+    
+    .summary-card {
+      background: white;
+      border-radius: 6px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    
+    @media (min-width: 768px) {
+      .summary-card {
+        border-radius: 8px;
+        padding: 20px;
+      }
+    }
+    
+    .summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    
+    .summary-card.income { border-left: 5px solid #70ad47; }
+    .summary-card.balance { border-left: 5px solid #4472c4; }
+    .summary-card.expense { border-left: 5px solid #e74c3c; }
+    .summary-card.carryover { border-left: 5px solid #f39c12; }
+    .summary-card.current-fee { border-left: 5px solid #9b59b6; }
+    
+    .summary-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    
+    @media (min-width: 768px) {
+      .summary-label {
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+    }
+    
+    .summary-value {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    @media (min-width: 768px) {
+      .summary-value {
+        font-size: 24px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .summary-value {
+        font-size: 16px;
+      }
+    }
+    
+    .summary-value.income { color: #70ad47; }
+    .summary-value.balance { color: #4472c4; }
+    .summary-value.expense { color: #e74c3c; }
+    .summary-value.carryover { color: #f39c12; }
+    .summary-value.current-fee { color: #9b59b6; }
+    
+    .admin-link {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      background: #4472c4;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(68, 114, 196, 0.3);
+      transition: all 0.3s ease;
+      font-size: 12px;
+      z-index: 1000;
+    }
+    
+    @media (min-width: 768px) {
+      .admin-link {
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 25px;
+        font-size: 14px;
+      }
+    }
+    
+    .admin-link:hover {
+      background: #2c5aa0;
+      box-shadow: 0 6px 20px rgba(68, 114, 196, 0.4);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="header-section">
+    <div class="title">YAZIRAY SİTESİ B BLOK</div>
+    <div class="year"><span id="year">2025</span></div>
+  </div>
+
+  <div class="excel-table">
+    <table class="main-table" id="mainTable">
+      <!-- Tablo JavaScript ile oluşturulacak -->
+    </table>
+  </div>
+
+  <div class="expenses-section">
+    <div class="expenses-title">GİDERLER - <span id="expenseYear">2025</span></div>
+    <div id="expensesContainer">
+      <!-- Giderler JavaScript ile oluşturulacak -->
+    </div>
+  </div>
+
+  <div class="summary-section">
+    <div class="summary-card income">
+      <div class="summary-label">Aidat Geliri</div>
+      <div class="summary-value income" id="sumCollected">₺ 100,00</div>
+    </div>
+    <div class="summary-card current-fee">
+      <div class="summary-label">Güncel Aidat</div>
+      <div class="summary-value current-fee" id="currentFee">₺ 100,00</div>
+    </div>
+    <div class="summary-card carryover">
+      <div class="summary-label">Önceki Devir</div>
+      <div class="summary-value carryover" id="sumCarryover">₺ 0,00</div>
+    </div>
+    <div class="summary-card balance">
+      <div class="summary-label">Kasa</div>
+      <div class="summary-value balance" id="sumBalance">₺ 188,50</div>
+    </div>
+    <div class="summary-card expense">
+      <div class="summary-label">Gider</div>
+      <div class="summary-value expense" id="sumExpenses">₺ 811,50</div>
+    </div>
+  </div>
+
+  <a href="admin.html" class="admin-link">👨‍💼 Admin Paneli</a>
+
+<script>
+const API = 'http://localhost:3000/api';
+let settings = {};
+let members = [];
+let expenses = [];
+
+async function fetchAll(){
+  try {
+    settings = await (await fetch(API + '/settings')).json();
+    members = await (await fetch(API + '/members')).json();
+    expenses = await (await fetch(API + '/expenses')).json();
+    const summary = await (await fetch(API + '/summary')).json();
+    
+    document.getElementById('sumCollected').textContent = `₺ ${summary.totalCollected.toFixed(2)}`;
+    document.getElementById('currentFee').textContent = `₺ ${(settings.monthlyFee || 0).toFixed(2)}`;
+    document.getElementById('sumCarryover').textContent = `₺ ${(settings.previousCarryOver || 0).toFixed(2)}`;
+    document.getElementById('sumExpenses').textContent = `₺ ${summary.totalExpenses.toFixed(2)}`;
+    document.getElementById('sumBalance').textContent = `₺ ${summary.balance.toFixed(2)}`;
+    
+    renderAll();
+  } catch (e) {
+    console.error('API bağlantı hatası:', e);
+    // Demo veri kullan
+    loadDemoData();
+  }
+}
+
+function loadDemoData() {
+  settings = { monthlyFee: 100, previousCarryOver: 188.50, year: 2025 };
+  members = [
+    {id: '1', name: 'İsmail', payments: {'2025-08': {paid: true, amount: 100}}},
+    {id: '2', name: 'Ali', payments: {'2025-08': {paid: true, amount: 100}, '2025-09': {paid: true, amount: 100}}},
+    {id: '3', name: 'Özgür', payments: {'2025-08': {paid: true, amount: 100}}},
+    {id: '4', name: 'İsmail', payments: {'2025-08': {paid: true, amount: 100}, '2025-09': {paid: true, amount: 100}}},
+    {id: '5', name: 'Mehmet', payments: {}},
+    {id: '6', name: 'Murat', payments: {}}
+  ];
+  expenses = [
+    {id: '1', date: '11.08.2025', type: 'Temizlik', description: 'Temizlik kimyasalları ve vileda (İsmail 4)', amount: 811.50}
+  ];
+  renderAll();
+}
+
+function getMonths(){
+  return Array.from({length:12}, (_,i)=> `${settings.year}-${String(i+1).padStart(2,'0')}`);
+}
+
+function monthLabel(ym){
+  const m = ym.split('-')[1];
+  return ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][Number(m)-1];
+}
+
+function getMonthlyFeeForMonth(yearMonth) {
+  const feeHistory = settings.feeHistory || [];
+  if (feeHistory.length === 0) {
+    return settings.monthlyFee || 100;
+  }
+  
+  // Tarihi YYYY-MM formatına çevir
+  const targetDate = yearMonth + '-01';
+  
+  // Geçmişe doğru ara, o ay için geçerli olan tutarı bul
+  let applicableFee = feeHistory[0].amount;
+  
+  for (const fee of feeHistory) {
+    if (fee.startDate <= targetDate) {
+      applicableFee = fee.amount;
+    } else {
+      break;
+    }
+  }
+  
+  return applicableFee;
+}
+
+function calculateSummary() {
+  const months = getMonths();
+  const totalCollected = members.reduce((sum, member) => {
+    return sum + months.reduce((monthSum, month) => {
+      const payment = member.payments?.[month];
+      // Eğer payment obje ise amount'unu al, boolean ise o ay için geçerli tutarı kullan
+      if (payment) {
+        if (typeof payment === 'object' && payment.amount !== undefined) {
+          return monthSum + payment.amount;
+        } else if (payment === true) {
+          // Geriye uyumluluk - o ay için geçerli tutarı kullan
+          return monthSum + getMonthlyFeeForMonth(month);
+        }
+      }
+      return monthSum;
+    }, 0);
+  }, 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const balance = settings.previousCarryOver + totalCollected - totalExpenses;
+  return { totalCollected, totalExpenses, balance };
+}
+
+function renderAll() {
+  document.getElementById('year').textContent = settings.year;
+  document.getElementById('expenseYear').textContent = settings.year;
+  renderTable();
+  renderExpenses();
+  renderSummary();
+}
+
+function renderTable() {
+  const months = getMonths();
+  const table = document.getElementById('mainTable');
+  
+  // Başlık satırı
+  let html = '<thead><tr>';
+  html += '<th style="width: 60px;">D.No</th>';
+  html += '<th style="width: 90px;">Süt.Ü</th>';
+  html += '<th style="width: 60px;">Oca</th>';
+  html += '<th style="width: 60px;">Şub</th>';
+  html += '<th style="width: 60px;">Mar</th>';
+  html += '<th style="width: 60px;">Nis</th>';
+  html += '<th style="width: 60px;">May</th>';
+  html += '<th style="width: 60px;">Haz</th>';
+  html += '<th style="width: 60px;">Tem</th>';
+  html += '<th style="width: 60px;">Ağu</th>';
+  html += '<th style="width: 60px;">Eyl</th>';
+  html += '<th style="width: 60px;">Eki</th>';
+  html += '<th style="width: 60px;">Kas</th>';
+  html += '<th style="width: 60px;">Ara</th>';
+  html += '<th style="width: 80px;">Aidat</th>';
+  html += '<th style="width: 80px;">Kasa</th>';
+  html += '</tr></thead>';
+  
+  html += '<tbody>';
+  
+  // Gider satırı - toplam gider tutarı
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  for(let i = 0; i < 12; i++) { 
+    
+  }
+
+  
+  // Üye satırları - Backend'den gelen gerçek veriler
+  members.forEach((member, index) => {
+    html += '<tr>';
+    // Daire numarası sıralı olsun (1, 2, 3, 4...)
+    html += `<td class="member-num">${index + 1}</td>`;
+    html += `<td class="member-name">${member.name}</td>`;
+    
+    // 12 ay kontrolü - gerçek ödeme verilerini kullan
+    const monthCodes = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12'];
+    monthCodes.forEach(monthCode => {
+      const payment = member.payments && member.payments[monthCode];
+      const isPaid = payment && (payment.paid === true || payment === true);
+      if(isPaid) {
+        html += '<td class="paid">✓</td>';
+      } else {
+        html += '<td class="empty-cell"></td>';
+      }
+    });
+    
+    // Toplam ödenen aidat hesapla - gerçek ödenen tutarları kullan
+    let totalPaid = 0;
+    if(member.payments) {
+      Object.entries(member.payments).forEach(([month, payment]) => {
+        if (payment && typeof payment === 'object' && payment.amount !== undefined) {
+          // Yeni sistem - gerçek ödenen tutar
+          totalPaid += payment.amount;
+        } else if (payment === true) {
+          // Eski sistem uyumluluğu - o ay için geçerli tutarı kullan
+          totalPaid += getMonthlyFeeForMonth(month);
+        }
+      });
+    }
+    
+    html += `<td class="amount">₺ ${totalPaid.toFixed(2)}</td>`;
+    html += '<td class="empty-cell"></td>';
+    html += '</tr>';
+  });
+  
+  // Eğer üye yoksa demo verilerini göster
+  if(members.length === 0) {
+    const demoMembers = [
+      {id: 1, name: 'İsmail', payments: {'2025-08': {paid: true, amount: 100}}},
+      {id: 2, name: 'Ali', payments: {'2025-08': {paid: true, amount: 100}, '2025-09': {paid: true, amount: 100}}},
+      {id: 3, name: 'Özgür', payments: {'2025-08': {paid: true, amount: 100}}},
+      {id: 4, name: 'İsmail', payments: {'2025-08': {paid: true, amount: 100}, '2025-09': {paid: true, amount: 100}}},
+      {id: 5, name: 'Mehmet', payments: {}},
+      {id: 6, name: 'Murat', payments: {}}
+    ];
+    
+    demoMembers.forEach((member, index) => {
+      html += '<tr>';
+      html += `<td class="member-num">${index + 1}</td>`;
+      html += `<td class="member-name">${member.name}</td>`;
+      
+      const monthCodes = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12'];
+      monthCodes.forEach(monthCode => {
+        const payment = member.payments[monthCode];
+        const isPaid = payment && (payment.paid === true || payment === true);
+        if(isPaid) {
+          html += '<td class="paid">✓</td>';
+        } else {
+          html += '<td class="empty-cell"></td>';
+        }
+      });
+      
+      let totalPaid = 0;
+      Object.entries(member.payments).forEach(([month, payment]) => {
+        if (payment && typeof payment === 'object' && payment.amount !== undefined) {
+          totalPaid += payment.amount;
+        } else if (payment === true) {
+          totalPaid += getMonthlyFeeForMonth(month);
+        }
+      });
+      
+      html += `<td class="amount">₺ ${totalPaid.toFixed(2)}</td>`;
+      html += '<td class="empty-cell"></td>';
+      html += '</tr>';
+    });
+  }
+  
+  // TOPLAM satırı - gerçek hesaplamalar
+  const totalCollected = members.reduce((sum, member) => {
+    let memberTotal = 0;
+    if(member.payments) {
+      Object.entries(member.payments).forEach(([month, payment]) => {
+        if (payment && typeof payment === 'object' && payment.amount !== undefined) {
+          memberTotal += payment.amount;
+        } else if (payment === true) {
+          memberTotal += getMonthlyFeeForMonth(month);
+        }
+      });
+    }
+    return sum + memberTotal;
+  }, 0);
+  
+  // Aylık toplamları hesapla - gerçek ödenen tutarları kullan
+  const monthlyTotals = [];
+  const monthCodes = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12'];
+  monthCodes.forEach(monthCode => {
+    let monthTotal = 0;
+    members.forEach(member => {
+      const payment = member.payments && member.payments[monthCode];
+      if (payment && typeof payment === 'object' && payment.amount !== undefined) {
+        monthTotal += payment.amount;
+      } else if (payment === true) {
+        monthTotal += getMonthlyFeeForMonth(monthCode);
+      }
+    });
+    monthlyTotals.push(monthTotal);
+  });
+  
+  html += '<tr class="total-row">';
+  html += '<td style="background: #2c5aa0; color: white; font-weight: bold;">TOPLAM</td>';
+  html += `<td style="background: #2c5aa0; color: white;"></td>`;
+  
+  monthlyTotals.forEach(total => {
+    html += `<td style="background: #2c5aa0; color: white;">₺${total}</td>`;
+  });
+  
+  html += `<td style="background: #2c5aa0; color: white;">₺${totalCollected}</td>`;
+  html += '<td style="background: #2c5aa0; color: white;">₺0</td>';
+  html += '</tr>';
+  
+  // Alt toplam satırı - kasa durumu
+  const balance = settings.previousCarryOver + totalCollected - totalExpenses;
+
+  html += '</tr>';
+  
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function renderExpenses() {
+  const container = document.getElementById('expensesContainer');
+  let html = '';
+  
+  // Başlık
+  html += '<div class="expense-row">';
+  html += '<div class="expense-cell" style="background:#e74c3c; color:white; font-weight:bold;">Tarih</div>';
+  html += '<div class="expense-cell" style="background:#e74c3c; color:white; font-weight:bold;">Gider T.</div>';
+  html += '<div class="expense-cell" style="background:#e74c3c; color:white; font-weight:bold;">Açıklama</div>';
+  html += '<div class="expense-cell" style="background:#e74c3c; color:white; font-weight:bold;">Tutar</div>';
+  html += '</div>';
+  
+  expenses.forEach(expense => {
+    html += '<div class="expense-row">';
+    html += `<div class="expense-cell">${expense.date}</div>`;
+    html += `<div class="expense-cell">${expense.type || ''}</div>`;
+    html += `<div class="expense-cell">${expense.description || ''}</div>`;
+    html += `<div class="expense-cell" style="text-align:right;">₺ ${expense.amount.toFixed(2)}</div>`;
+    html += '</div>';
+  });
+  
+  container.innerHTML = html;
+}
+
+function renderSummary() {
+  const summary = calculateSummary();
+  document.getElementById('sumCollected').textContent = `₺ ${summary.totalCollected.toFixed(2)}`;
+  document.getElementById('currentFee').textContent = `₺ ${(settings.monthlyFee || 0).toFixed(2)}`;
+  document.getElementById('sumCarryover').textContent = `₺ ${(settings.previousCarryOver || 0).toFixed(2)}`;
+  document.getElementById('sumExpenses').textContent = `₺ ${summary.totalExpenses.toFixed(2)}`;
+  document.getElementById('sumBalance').textContent = `₺ ${summary.balance.toFixed(2)}`;
+}
+
+fetchAll();
+</script>
+</body>
+</html>
