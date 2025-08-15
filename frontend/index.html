@@ -429,7 +429,10 @@
   <a href="admin.html" class="admin-link">👨‍💼 Admin Paneli</a>
 
 <script>
-const API = 'http://localhost:3000/api';
+// API URL - automatically detects environment
+const API = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000/api' 
+  : '/api';
 let settings = {};
 let members = [];
 let expenses = [];

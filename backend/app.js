@@ -49,26 +49,33 @@ const defaultData = {
   ]
 };
 
-// Simple file-based storage
+// Simple file-based storage (local development)
+// In production (Vercel), data will be in-memory only
 const DB_PATH = path.join(process.cwd(), 'db.json');
 let db = { data: defaultData };
 
 function load() {
   try {
-    if (fs.existsSync(DB_PATH)) {
+    // Only try to read file in local development
+    if (process.env.NODE_ENV !== 'production' && fs.existsSync(DB_PATH)) {
       db.data = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
     } else {
-      fs.writeFileSync(DB_PATH, JSON.stringify(defaultData, null, 2));
+      // In production or first run, use default data
+      db.data = { ...defaultData };
     }
   } catch (e) {
     console.error('DB load error:', e);
-    db.data = defaultData;
+    db.data = { ...defaultData };
   }
 }
 
 function persist() {
   try {
-    fs.writeFileSync(DB_PATH, JSON.stringify(db.data, null, 2));
+    // Only persist to file in local development
+    if (process.env.NODE_ENV !== 'production') {
+      fs.writeFileSync(DB_PATH, JSON.stringify(db.data, null, 2));
+    }
+    // In production, data is only in memory (resets on each deployment)
   } catch (e) {
     console.error('DB persist error:', e);
   }

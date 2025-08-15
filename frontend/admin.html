@@ -738,7 +738,10 @@ document.getElementById('adminPassword').addEventListener('keypress', function(e
   }
 });
 
-const API = 'http://localhost:3000/api';
+// API URL - automatically detects environment
+const API = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3000/api' 
+  : '/api';
 let settings = {};
 let members = [];
 let expenses = [];
