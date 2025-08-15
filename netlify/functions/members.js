@@ -12,7 +12,8 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const pathParts = event.path.split('/');
+    const path = event.path;
+    const pathParts = path.split('/').filter(Boolean);
     
     switch (event.httpMethod) {
       case 'GET':
@@ -27,10 +28,22 @@ exports.handler = async (event, context) => {
         };
         
       case 'POST':
-        if (pathParts.includes('toggle')) {
-          // Payment toggle: /api/members/:id/payments/:yearMonth/toggle
-          const id = pathParts[pathParts.indexOf('members') + 1];
-          const yearMonth = pathParts[pathParts.indexOf('payments') + 1];
+        // Check if this is a payment toggle request
+        if (path.includes('/payments/') && path.includes('/toggle')) {
+          // Extract ID and yearMonth from path like: /api/members/5/payments/2025-08/toggle
+          const membersIndex = pathParts.indexOf('members');
+          const paymentsIndex = pathParts.indexOf('payments');
+          
+          if (membersIndex === -1 || paymentsIndex === -1) {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Invalid payment toggle path' })
+            };
+          }
+          
+          const id = pathParts[membersIndex + 1];
+          const yearMonth = pathParts[paymentsIndex + 1];
           
           const allMembers = await Database.getMembers();
           const member = allMembers.find(m => m.id === parseInt(id));
@@ -71,8 +84,16 @@ exports.handler = async (event, context) => {
             })
           };
         } else {
-          // Create member
-          const body = JSON.parse(event.body);
+          // Create new member
+          const body = JSON.parse(event.body || '{}');
+          if (!body.name) {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Name is required' })
+            };
+          }
+          
           const member = await Database.createMember({
             name: body.name,
             payments: {}
@@ -86,8 +107,16 @@ exports.handler = async (event, context) => {
         }
         
       case 'DELETE':
-        const id = pathParts[pathParts.length - 1];
-        await Database.deleteMember(parseInt(id));
+        const deleteId = pathParts[pathParts.length - 1];
+        if (!deleteId || deleteId === 'members') {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ error: 'Member ID required for deletion' })
+          };
+        }
+        
+        await Database.deleteMember(parseInt(deleteId));
         return {
           statusCode: 200,
           headers,
@@ -106,7 +135,11 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ 
+        error: 'Internal server error', 
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     };
   }
 };

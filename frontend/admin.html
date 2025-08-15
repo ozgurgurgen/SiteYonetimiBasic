@@ -758,9 +758,36 @@ function showStatus(message, isError = false) {
 
 async function fetchAll(){
   try {
-    settings = await (await fetch(API + '/settings')).json();
-    members = await (await fetch(API + '/members')).json();
-    expenses = await (await fetch(API + '/expenses')).json();
+    const settingsResponse = await fetch(API + '/settings');
+    const membersResponse = await fetch(API + '/members');
+    const expensesResponse = await fetch(API + '/expenses');
+    
+    if (!settingsResponse.ok) {
+      throw new Error(`Settings API error: ${settingsResponse.status}`);
+    }
+    if (!membersResponse.ok) {
+      throw new Error(`Members API error: ${membersResponse.status}`);
+    }
+    if (!expensesResponse.ok) {
+      throw new Error(`Expenses API error: ${expensesResponse.status}`);
+    }
+    
+    settings = await settingsResponse.json();
+    const membersData = await membersResponse.json();
+    const expensesData = await expensesResponse.json();
+    
+    // Ensure members is an array
+    members = Array.isArray(membersData) ? membersData : [];
+    expenses = Array.isArray(expensesData) ? expensesData : [];
+    
+    // Database field name compatibility
+    if (settings.monthly_fee && !settings.monthlyFee) {
+      settings.monthlyFee = settings.monthly_fee;
+    }
+    if (settings.previous_carry_over !== undefined && !settings.previousCarryOver) {
+      settings.previousCarryOver = settings.previous_carry_over;
+    }
+    
     renderAll();
     showStatus('✅ Veriler yüklendi');
   } catch (e) {

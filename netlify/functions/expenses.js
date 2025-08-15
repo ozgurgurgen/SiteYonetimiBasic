@@ -12,6 +12,8 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    const pathParts = event.path.split('/').filter(Boolean);
+    
     switch (event.httpMethod) {
       case 'GET':
         const expenses = await Database.getExpenses();
@@ -22,7 +24,16 @@ exports.handler = async (event, context) => {
         };
         
       case 'POST':
-        const body = JSON.parse(event.body);
+        const body = JSON.parse(event.body || '{}');
+        
+        if (!body.date || !body.type || !body.description || body.amount === undefined) {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ error: 'Missing required fields: date, type, description, amount' })
+          };
+        }
+        
         const expense = await Database.createExpense({
           date: body.date,
           type: body.type,
@@ -37,8 +48,15 @@ exports.handler = async (event, context) => {
         };
         
       case 'DELETE':
-        const pathParts = event.path.split('/');
         const id = pathParts[pathParts.length - 1];
+        if (!id || id === 'expenses') {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({ error: 'Expense ID required for deletion' })
+          };
+        }
+        
         await Database.deleteExpense(parseInt(id));
         
         return {
@@ -59,7 +77,11 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ 
+        error: 'Internal server error', 
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     };
   }
 };

@@ -24,23 +24,24 @@ exports.handler = async (event, context) => {
     const members = await Database.getMembers();
     const expenses = await Database.getExpenses();
     
-    const months = getMonthsOfYear(settings.year);
-    const totalCollected = members.reduce((sum, member) => {
+    const months = getMonthsOfYear(settings?.year || 2025);
+    const totalCollected = (members || []).reduce((sum, member) => {
       return sum + months.reduce((monthSum, month) => {
         const payment = member.payments?.[month];
         if (payment) {
           if (typeof payment === 'object' && payment.amount !== undefined) {
-            return monthSum + payment.amount;
+            return monthSum + (payment.amount || 0);
           } else if (payment === true) {
-            return monthSum + settings.monthly_fee;
+            return monthSum + (settings?.monthly_fee || 100);
           }
         }
         return monthSum;
       }, 0);
     }, 0);
     
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const balance = settings.previous_carry_over + totalCollected - totalExpenses;
+    const totalExpenses = (expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
+    const carryOver = settings?.previous_carry_over || 0;
+    const balance = carryOver + totalCollected - totalExpenses;
     
     return {
       statusCode: 200,
@@ -57,6 +58,8 @@ exports.handler = async (event, context) => {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
+        error: 'Internal server error',
+        message: error.message,
         totalCollected: 0, 
         totalExpenses: 0, 
         balance: 0 

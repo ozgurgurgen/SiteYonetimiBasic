@@ -23,7 +23,7 @@ exports.handler = async (event, context) => {
         };
         
       case 'PUT':
-        const body = JSON.parse(event.body);
+        const body = JSON.parse(event.body || '{}');
         const { monthlyFee, previousCarryOver, year } = body;
         const currentSettings = await Database.getSettings();
         
@@ -80,7 +80,11 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ 
+        error: 'Internal server error', 
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      })
     };
   }
 };
