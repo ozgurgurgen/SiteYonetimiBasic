@@ -247,7 +247,7 @@ class Database {
           date: expense.date,
           type: expense.type,
           description: expense.description,
-          amount: expense.amount
+          amount: parseFloat(expense.amount)
         })
         .select()
         .single();

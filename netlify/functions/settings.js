@@ -27,8 +27,8 @@ exports.handler = async (event, context) => {
         const { monthlyFee, previousCarryOver, year } = body;
         const currentSettings = await Database.getSettings();
         
-        if (monthlyFee !== undefined && Number(monthlyFee) !== currentSettings.monthly_fee) {
-          const newFee = Number(monthlyFee);
+        if (monthlyFee !== undefined && parseFloat(monthlyFee) !== currentSettings.monthly_fee) {
+          const newFee = parseFloat(monthlyFee);
           const today = new Date().toISOString().split('T')[0];
           
           const feeHistory = currentSettings.fee_history || [];
@@ -54,11 +54,11 @@ exports.handler = async (event, context) => {
         }
         
         if (previousCarryOver !== undefined) {
-          currentSettings.previous_carry_over = Number(previousCarryOver);
+          currentSettings.previous_carry_over = parseFloat(previousCarryOver);
         }
         
         if (year !== undefined) {
-          currentSettings.year = Number(year);
+          currentSettings.year = parseInt(year);
         }
         
         const updatedSettings = await Database.updateSettings(currentSettings);

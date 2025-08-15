@@ -185,15 +185,15 @@ exports.handler = async (event, context) => {
 function getMonthlyFeeForMonth(yearMonth, settings) {
   const feeHistory = settings?.fee_history || [];
   if (feeHistory.length === 0) {
-    return settings?.monthly_fee || 100;
+    return parseFloat(settings?.monthly_fee) || 100;
   }
   
   const targetDate = yearMonth + '-01';
-  let applicableFee = feeHistory[0].amount;
+  let applicableFee = parseFloat(feeHistory[0].amount) || 100;
   
   for (const fee of feeHistory) {
     if (fee.start_date <= targetDate) {
-      applicableFee = fee.amount;
+      applicableFee = parseFloat(fee.amount) || 100;
     } else {
       break;
     }

@@ -64,6 +64,14 @@ Bu proje, site yöneticileri için geliştirilmiş modern bir aidat takip ve yö
 3. **SQL Editor'da `supabase-schema.sql` dosyasındaki komutları çalıştırın**
 4. **Project Settings > API'dan URL ve Key bilgilerini alın**
 
+#### ⚠️ Decimal Değerler İçin Önemli Not
+Eğer 811.5 gibi ondalıklı tutarlar girerken hata alıyorsanız, `database/decimal-fix.sql` dosyasını Supabase SQL Editor'da çalıştırın:
+```sql
+ALTER TABLE expenses ALTER COLUMN amount TYPE DECIMAL(10,2);
+ALTER TABLE settings ALTER COLUMN monthly_fee TYPE DECIMAL(8,2);
+ALTER TABLE settings ALTER COLUMN previous_carry_over TYPE DECIMAL(12,2);
+```
+
 ### Adımlar
 1. **Repository'yi klonlayın**
    ```bash

@@ -48,11 +48,21 @@ exports.handler = async (event, context) => {
             };
           }
           
+          // Validate and parse amount as decimal
+          const amount = parseFloat(body.amount);
+          if (isNaN(amount) || amount < 0) {
+            return {
+              statusCode: 400,
+              headers,
+              body: JSON.stringify({ error: 'Amount must be a valid positive number' })
+            };
+          }
+          
           const expense = await Database.createExpense({
             date: body.date,
             type: body.type,
             description: body.description,
-            amount: Number(body.amount)
+            amount: amount
           });
           
           return {
