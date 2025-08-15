@@ -1,0 +1,43 @@
+[build]
+  command = "npm install"
+  functions = "netlify/functions"
+  publish = "frontend"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/settings"
+  to = "/.netlify/functions/settings"
+  status = 200
+
+[[redirects]]
+  from = "/api/members"
+  to = "/.netlify/functions/members"
+  status = 200
+
+[[redirects]]
+  from = "/api/members/*"
+  to = "/.netlify/functions/members"
+  status = 200
+
+[[redirects]]
+  from = "/api/expenses"
+  to = "/.netlify/functions/expenses"
+  status = 200
+
+[[redirects]]
+  from = "/api/expenses/*"
+  to = "/.netlify/functions/expenses"
+  status = 200
+
+[[redirects]]
+  from = "/api/summary"
+  to = "/.netlify/functions/summary"
+  status = 200
+
+# Catch-all redirect for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

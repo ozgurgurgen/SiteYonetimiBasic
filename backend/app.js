@@ -4,8 +4,17 @@ import fs from 'fs';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+// Import database operations
+import { initializeDatabase, Database } from './database.js';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
+
+// Initialize database connection
+initializeDatabase();
 
 // CORS ayarları
 app.use(cors({
@@ -83,10 +92,10 @@ function persist() {
 
 load();
 
-function getMonthlyFeeForMonth(yearMonth) {
-  const feeHistory = db.data.settings.feeHistory || [];
+function getMonthlyFeeForMonth(yearMonth, settings) {
+  const feeHistory = settings?.fee_history || [];
   if (feeHistory.length === 0) {
-    return db.data.settings.monthlyFee;
+    return settings?.monthly_fee || 100;
   }
   
   // Tarihi YYYY-MM formatına çevir
@@ -96,7 +105,7 @@ function getMonthlyFeeForMonth(yearMonth) {
   let applicableFee = feeHistory[0].amount;
   
   for (const fee of feeHistory) {
-    if (fee.startDate <= targetDate) {
+    if (fee.start_date <= targetDate) {
       applicableFee = fee.amount;
     } else {
       break;
@@ -110,27 +119,37 @@ function getMonthsOfYear(year) {
   return Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, '0')}`);
 }
 
-function calculateSummary() {
-  const { settings, members, expenses } = db.data;
-  const months = getMonthsOfYear(settings.year);
-  const totalCollected = members.reduce((sum, member) => {
-    return sum + months.reduce((monthSum, month) => {
-      const payment = member.payments?.[month];
-      // Eğer payment obje ise amount'unu al, boolean ise eski sistemi kullan
-      if (payment) {
-        if (typeof payment === 'object' && payment.amount !== undefined) {
-          return monthSum + payment.amount;
-        } else if (payment === true) {
-          // Geriye uyumluluk için eski boolean sistemi destekle
-          return monthSum + settings.monthlyFee;
+async function calculateSummary() {
+  try {
+    const settings = await Database.getSettings();
+    const members = await Database.getMembers();
+    const expenses = await Database.getExpenses();
+    
+    const months = getMonthsOfYear(settings.year);
+    const totalCollected = members.reduce((sum, member) => {
+      return sum + months.reduce((monthSum, month) => {
+        const payment = member.payments?.[month];
+        // Eğer payment obje ise amount'unu al, boolean ise eski sistemi kullan
+        if (payment) {
+          if (typeof payment === 'object' && payment.amount !== undefined) {
+            return monthSum + payment.amount;
+          } else if (payment === true) {
+            // Geriye uyumluluk için eski boolean sistemi destekle
+            return monthSum + settings.monthly_fee;
+          }
         }
-      }
-      return monthSum;
+        return monthSum;
+      }, 0);
     }, 0);
-  }, 0);
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const balance = settings.previousCarryOver + totalCollected - totalExpenses;
-  return { totalCollected, totalExpenses, balance };
+    
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const balance = settings.previous_carry_over + totalCollected - totalExpenses;
+    
+    return { totalCollected, totalExpenses, balance };
+  } catch (error) {
+    console.error('Calculate summary error:', error);
+    return { totalCollected: 0, totalExpenses: 0, balance: 0 };
+  }
 }
 
 function ensurePayments(member) {
@@ -139,88 +158,142 @@ function ensurePayments(member) {
 }
 
 // Routes
-app.get('/api/settings', (req, res) => {
-  res.json(db.data.settings);
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await Database.getSettings();
+    res.json(settings);
+  } catch (error) {
+    console.error('Settings fetch error:', error);
+    res.status(500).json({ error: 'Settings fetch failed' });
+  }
 });
 
-app.put('/api/settings', (req, res) => {
-  const { monthlyFee, previousCarryOver, year } = req.body;
-  
-  // Aidat tutarı değişiyorsa geçmişe kaydet
-  if (monthlyFee !== undefined && Number(monthlyFee) !== db.data.settings.monthlyFee) {
-    const newFee = Number(monthlyFee);
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD formatı
+app.put('/api/settings', async (req, res) => {
+  try {
+    const { monthlyFee, previousCarryOver, year } = req.body;
+    const currentSettings = await Database.getSettings();
     
-    // Fee history yoksa oluştur
-    if (!db.data.settings.feeHistory) {
-      db.data.settings.feeHistory = [{
-        amount: db.data.settings.monthlyFee,
-        startDate: `${db.data.settings.year}-01-01`,
-        description: 'Başlangıç aidat tutarı'
-      }];
+    // Aidat tutarı değişiyorsa geçmişe kaydet
+    if (monthlyFee !== undefined && Number(monthlyFee) !== currentSettings.monthly_fee) {
+      const newFee = Number(monthlyFee);
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Fee history'yi güncelle
+      const feeHistory = currentSettings.fee_history || [];
+      
+      if (feeHistory.length === 0) {
+        feeHistory.push({
+          amount: currentSettings.monthly_fee,
+          start_date: `${currentSettings.year}-01-01`,
+          description: 'Başlangıç aidat tutarı'
+        });
+      }
+      
+      feeHistory.push({
+        amount: newFee,
+        start_date: today,
+        description: `Aidat ${currentSettings.monthly_fee}₺'den ${newFee}₺'ye güncellendi`
+      });
+      
+      // Tarihe göre sırala
+      feeHistory.sort((a, b) => a.start_date.localeCompare(b.start_date));
+      
+      currentSettings.monthly_fee = newFee;
+      currentSettings.fee_history = feeHistory;
     }
     
-    // Yeni tutarı geçmişe ekle
-    db.data.settings.feeHistory.push({
-      amount: newFee,
-      startDate: today,
-      description: `Aidat ${db.data.settings.monthlyFee}₺'den ${newFee}₺'ye güncellendi`
-    });
+    if (previousCarryOver !== undefined) {
+      currentSettings.previous_carry_over = Number(previousCarryOver);
+    }
     
-    // Tarihe göre sırala
-    db.data.settings.feeHistory.sort((a, b) => a.startDate.localeCompare(b.startDate));
+    if (year !== undefined) {
+      currentSettings.year = Number(year);
+    }
     
-    db.data.settings.monthlyFee = newFee;
+    const updatedSettings = await Database.updateSettings(currentSettings);
+    res.json(updatedSettings);
+  } catch (error) {
+    console.error('Settings update error:', error);
+    res.status(500).json({ error: 'Settings update failed' });
   }
-  
-  if (previousCarryOver !== undefined) db.data.settings.previousCarryOver = Number(previousCarryOver);
-  if (year !== undefined) db.data.settings.year = Number(year);
-  persist();
-  res.json(db.data.settings);
 });
 
-app.get('/api/members', (req, res) => {
-  res.json(db.data.members.map(ensurePayments));
+app.get('/api/members', async (req, res) => {
+  try {
+    const members = await Database.getMembers();
+    res.json(members.map(ensurePayments));
+  } catch (error) {
+    console.error('Members fetch error:', error);
+    res.status(500).json({ error: 'Members fetch failed' });
+  }
 });
 
-app.post('/api/members', (req, res) => {
-  const { name } = req.body;
-  const member = { id: nanoid(), name, payments: {}, createdAt: new Date().toISOString() };
-  db.data.members.push(member);
-  persist();
-  res.status(201).json(member);
-});
-
-app.delete('/api/members/:id', (req, res) => {
-  const idx = db.data.members.findIndex(m => m.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: 'Not found' });
-  const removed = db.data.members.splice(idx, 1)[0];
-  persist();
-  res.json(removed);
-});
-
-app.post('/api/members/:id/payments/:yearMonth/toggle', (req, res) => {
-  const member = db.data.members.find(m => m.id === req.params.id);
-  if (!member) return res.status(404).json({ error: 'Not found' });
-  ensurePayments(member);
-  const { yearMonth } = req.params;
-  
-  if (member.payments[yearMonth]) {
-    // Ödeme varsa iptal et
-    delete member.payments[yearMonth];
-  } else {
-    // O ay için geçerli olan aidat tutarını kullan
-    const monthlyFee = getMonthlyFeeForMonth(yearMonth);
-    member.payments[yearMonth] = {
-      paid: true,
-      amount: monthlyFee,
-      paidAt: new Date().toISOString()
+app.post('/api/members', async (req, res) => {
+  try {
+    const { name } = req.body;
+    const member = {
+      name,
+      payments: {}
     };
+    
+    const createdMember = await Database.createMember(member);
+    res.status(201).json(createdMember);
+  } catch (error) {
+    console.error('Member creation error:', error);
+    res.status(500).json({ error: 'Member creation failed' });
   }
-  
-  persist();
-  const paid = !!member.payments[yearMonth];
-  res.json({ id: member.id, yearMonth, paid, amount: paid ? member.payments[yearMonth].amount : 0 });
+});
+
+app.delete('/api/members/:id', async (req, res) => {
+  try {
+    await Database.deleteMember(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Member deletion error:', error);
+    res.status(500).json({ error: 'Member deletion failed' });
+  }
+});
+
+app.post('/api/members/:id/payments/:yearMonth/toggle', async (req, res) => {
+  try {
+    const members = await Database.getMembers();
+    const member = members.find(m => m.id === parseInt(req.params.id));
+    
+    if (!member) {
+      return res.status(404).json({ error: 'Member not found' });
+    }
+
+    const { yearMonth } = req.params;
+    const payments = member.payments || {};
+    
+    if (payments[yearMonth]) {
+      // Ödeme varsa iptal et
+      delete payments[yearMonth];
+    } else {
+      // O ay için geçerli olan aidat tutarını kullan
+      const settings = await Database.getSettings();
+      const monthlyFee = getMonthlyFeeForMonth(yearMonth, settings);
+      payments[yearMonth] = {
+        paid: true,
+        amount: monthlyFee,
+        paidAt: new Date().toISOString()
+      };
+    }
+
+    // Member'ı güncelle
+    await Database.updateMember(member.id, { payments });
+    
+    const paid = !!payments[yearMonth];
+    res.json({ 
+      id: member.id, 
+      yearMonth, 
+      paid, 
+      amount: paid ? payments[yearMonth].amount : 0 
+    });
+  } catch (error) {
+    console.error('Payment toggle error:', error);
+    res.status(500).json({ error: 'Payment toggle failed' });
+  }
 });
 
 app.get('/api/expenses', (req, res) => {
@@ -243,8 +316,14 @@ app.delete('/api/expenses/:id', (req, res) => {
   res.json(removed);
 });
 
-app.get('/api/summary', (req, res) => {
-  res.json(calculateSummary());
+app.get('/api/summary', async (req, res) => {
+  try {
+    const summary = await calculateSummary();
+    res.json(summary);
+  } catch (error) {
+    console.error('Summary calculation error:', error);
+    res.status(500).json({ error: 'Summary calculation failed' });
+  }
 });
 
 // Fallback route

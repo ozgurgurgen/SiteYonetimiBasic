@@ -1,6 +1,6 @@
 # Site Yönetimi Basic - Aidat Takip Sistemi
 
-Bu proje, site yöneticileri için geliştirilmiş modern bir aidat takip ve yönetim sistemidir. Excel tablosundan web tabanlı uygulamaya dönüştürülmüştür.
+Bu proje, site yöneticileri için geliştirilmiş modern bir aidat takip ve yönetim sistemidir. Excel tablosundan web tabanlı uygulamaya dönüştürülmüş ve **Supabase PostgreSQL** database ile güçlendirilmiştir.
 
 ## 🚀 Özellikler
 
@@ -9,6 +9,7 @@ Bu proje, site yöneticileri için geliştirilmiş modern bir aidat takip ve yö
 - **Aylık Ödeme Takibi**: Her ay için ayrı ödeme durumu
 - **Otomatik Hesaplamalar**: Toplam gelir, gider ve bakiye hesaplaması
 - **Önceki Devir**: Geçmiş yıllardan kalan bakiye takibi
+- **☁️ Cloud Database**: Supabase PostgreSQL ile kalıcı veri depolama
 
 ### 👥 Üye Yönetimi  
 - **Üye Ekleme/Çıkarma**: Dinamik üye listesi yönetimi
@@ -55,6 +56,13 @@ Bu proje, site yöneticileri için geliştirilmiş modern bir aidat takip ve yö
 ### Gereksinimler
 - Node.js (v14 veya üstü)
 - npm veya yarn
+- Supabase hesabı
+
+### Database Kurulumu (Supabase)
+1. **Supabase hesabı oluşturun**: https://supabase.com
+2. **Yeni proje oluşturun**
+3. **SQL Editor'da `supabase-schema.sql` dosyasındaki komutları çalıştırın**
+4. **Project Settings > API'dan URL ve Key bilgilerini alın**
 
 ### Adımlar
 1. **Repository'yi klonlayın**
@@ -65,11 +73,16 @@ Bu proje, site yöneticileri için geliştirilmiş modern bir aidat takip ve yö
 
 2. **Backend bağımlılıklarını yükleyin**
    ```bash
-   cd backend
    npm install
    ```
 
-3. **Sunucuyu başlatın**
+3. **Environment variables ayarlayın**
+   ```bash
+   cp .env.example .env
+   # .env dosyasını Supabase bilgilerinizle düzenleyin
+   ```
+
+4. **Sunucuyu başlatın**
    ```bash
    node app.js
    ```

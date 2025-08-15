@@ -444,11 +444,19 @@ async function fetchAll(){
     expenses = await (await fetch(API + '/expenses')).json();
     const summary = await (await fetch(API + '/summary')).json();
     
-    document.getElementById('sumCollected').textContent = `₺ ${summary.totalCollected.toFixed(2)}`;
-    document.getElementById('currentFee').textContent = `₺ ${(settings.monthlyFee || 0).toFixed(2)}`;
-    document.getElementById('sumCarryover').textContent = `₺ ${(settings.previousCarryOver || 0).toFixed(2)}`;
-    document.getElementById('sumExpenses').textContent = `₺ ${summary.totalExpenses.toFixed(2)}`;
-    document.getElementById('sumBalance').textContent = `₺ ${summary.balance.toFixed(2)}`;
+    // Database field name compatibility
+    if (settings.monthly_fee && !settings.monthlyFee) {
+      settings.monthlyFee = settings.monthly_fee;
+    }
+    if (settings.previous_carry_over !== undefined && !settings.previousCarryOver) {
+      settings.previousCarryOver = settings.previous_carry_over;
+    }
+    
+    document.getElementById('sumCollected').textContent = `₺ ${(summary.totalCollected || 0).toFixed(2)}`;
+    document.getElementById('currentFee').textContent = `₺ ${(settings.monthlyFee || settings.monthly_fee || 0).toFixed(2)}`;
+    document.getElementById('sumCarryover').textContent = `₺ ${(settings.previousCarryOver || settings.previous_carry_over || 0).toFixed(2)}`;
+    document.getElementById('sumExpenses').textContent = `₺ ${(summary.totalExpenses || 0).toFixed(2)}`;
+    document.getElementById('sumBalance').textContent = `₺ ${(summary.balance || 0).toFixed(2)}`;
     
     renderAll();
   } catch (e) {
@@ -508,13 +516,13 @@ function getMonthlyFeeForMonth(yearMonth) {
 
 function calculateSummary() {
   const months = getMonths();
-  const totalCollected = members.reduce((sum, member) => {
+  const totalCollected = (members || []).reduce((sum, member) => {
     return sum + months.reduce((monthSum, month) => {
       const payment = member.payments?.[month];
       // Eğer payment obje ise amount'unu al, boolean ise o ay için geçerli tutarı kullan
       if (payment) {
         if (typeof payment === 'object' && payment.amount !== undefined) {
-          return monthSum + payment.amount;
+          return monthSum + (payment.amount || 0);
         } else if (payment === true) {
           // Geriye uyumluluk - o ay için geçerli tutarı kullan
           return monthSum + getMonthlyFeeForMonth(month);
@@ -523,9 +531,16 @@ function calculateSummary() {
       return monthSum;
     }, 0);
   }, 0);
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const balance = settings.previousCarryOver + totalCollected - totalExpenses;
-  return { totalCollected, totalExpenses, balance };
+  
+  const totalExpenses = (expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
+  const carryOver = (settings?.previousCarryOver || settings?.previous_carry_over) || 0;
+  const balance = carryOver + totalCollected - totalExpenses;
+  
+  return { 
+    totalCollected: totalCollected || 0, 
+    totalExpenses: totalExpenses || 0, 
+    balance: balance || 0 
+  };
 }
 
 function renderAll() {
@@ -728,11 +743,11 @@ function renderExpenses() {
 
 function renderSummary() {
   const summary = calculateSummary();
-  document.getElementById('sumCollected').textContent = `₺ ${summary.totalCollected.toFixed(2)}`;
-  document.getElementById('currentFee').textContent = `₺ ${(settings.monthlyFee || 0).toFixed(2)}`;
-  document.getElementById('sumCarryover').textContent = `₺ ${(settings.previousCarryOver || 0).toFixed(2)}`;
-  document.getElementById('sumExpenses').textContent = `₺ ${summary.totalExpenses.toFixed(2)}`;
-  document.getElementById('sumBalance').textContent = `₺ ${summary.balance.toFixed(2)}`;
+  document.getElementById('sumCollected').textContent = `₺ ${(summary.totalCollected || 0).toFixed(2)}`;
+  document.getElementById('currentFee').textContent = `₺ ${(settings?.monthly_fee || settings?.monthlyFee || 0).toFixed(2)}`;
+  document.getElementById('sumCarryover').textContent = `₺ ${(settings?.previous_carry_over || settings?.previousCarryOver || 0).toFixed(2)}`;
+  document.getElementById('sumExpenses').textContent = `₺ ${(summary.totalExpenses || 0).toFixed(2)}`;
+  document.getElementById('sumBalance').textContent = `₺ ${(summary.balance || 0).toFixed(2)}`;
 }
 
 fetchAll();

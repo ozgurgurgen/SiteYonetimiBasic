@@ -1,0 +1,7 @@
+# Netlify Environment Variables
+# Bu değerleri Netlify Dashboard > Site Settings > Environment Variables'a ekleyin:
+
+SUPABASE_URL=https://ljjohyvxjulofwxuhbze.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxqam9oeXZ4anVsb2Z3eHVoYnplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyNDcyNTgsImV4cCI6MjA3MDgyMzI1OH0.AIO0pUTYNifbWSfYhzPn2gyTwr580k-F6nHDWx8jVdk
+
+# Netlify otomatik olarak NODE_ENV=production ayarlar

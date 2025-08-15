@@ -1,0 +1,89 @@
+{
+  "settings": {
+    "monthlyFee": 100,
+    "previousCarryOver": 188.5,
+    "year": 2025,
+    "feeHistory": [
+      {
+        "amount": 100,
+        "startDate": "2025-01-01",
+        "description": "Başlangıç aidat tutarı"
+      }
+    ]
+  },
+  "members": [
+    {
+      "id": "1",
+      "name": "İsmail",
+      "payments": {
+        "2025-08": {
+          "paid": true,
+          "amount": 100
+        }
+      },
+      "createdAt": "2025-08-13"
+    },
+    {
+      "id": "2",
+      "name": "Ali",
+      "payments": {
+        "2025-08": {
+          "paid": true,
+          "amount": 100
+        },
+        "2025-09": {
+          "paid": true,
+          "amount": 100
+        }
+      },
+      "createdAt": "2025-08-13"
+    },
+    {
+      "id": "3",
+      "name": "Özgür",
+      "payments": {
+        "2025-08": {
+          "paid": true,
+          "amount": 100
+        }
+      },
+      "createdAt": "2025-08-13"
+    },
+    {
+      "id": "4",
+      "name": "İsmail",
+      "payments": {
+        "2025-08": {
+          "paid": true,
+          "amount": 100
+        },
+        "2025-09": {
+          "paid": true,
+          "amount": 100
+        }
+      },
+      "createdAt": "2025-08-13"
+    },
+    {
+      "id": "5",
+      "name": "Mehmet",
+      "payments": {},
+      "createdAt": "2025-08-13"
+    },
+    {
+      "id": "6",
+      "name": "Murat",
+      "payments": {},
+      "createdAt": "2025-08-13"
+    }
+  ],
+  "expenses": [
+    {
+      "id": "I6vUWvBekbmZuv93Vf7Ue",
+      "date": "2025-08-11",
+      "type": "Temizlik",
+      "description": "Temizlik kimyasalları ve vileda (İsmail 4)",
+      "amount": 811.5
+    }
+  ]
+}
